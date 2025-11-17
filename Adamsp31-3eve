@@ -1,0 +1,63 @@
+# Adamp31-3eve.ps1
+# Apartado 2 - Menú de tipos de registros. 0 = salir. Muestra los 12 últimos registros del tipo elegido.
+# No usar while true -> usamos do..until
+
+Clear-Host
+# Obtener lista de tipos de registros disponibles y ordenarlos
+$logs = Get-WinEvent -ListLog * | Sort-Object LogName
+
+# Construir un array de nombres (solo los que existen)
+$logNames = $logs.LogName
+
+# Mostrar menú y permitir selección hasta que el usuario pulse 0
+do {
+    Clear-Host
+    Write-Host "==============================="
+    Write-Host "   MENÚ: Tipos de registros de eventos"
+    Write-Host "   Pulsa 0 para salir"
+    Write-Host "==============================="
+
+    # Mostrar la lista numerada
+    for ($i = 0; $i -lt $logNames.Count; $i++) {
+        # limitamos la salida a los primeros 30 logs para que el menú no sea inmenso (si quieres todos, quita el if)
+        if ($i -ge 30) { Write-Host "... (más registros disponibles, ajusta el script si quieres verlos todos)"; break }
+        $num = $i + 1
+        Write-Host ("{0}) {1}" -f $num, $logNames[$i])
+    }
+
+    Write-Host ""
+    $choice = Read-Host "Elige el número del tipo de registro (0 = salir)"
+
+    if ($choice -eq '0') {
+        Write-Host "Saliendo..." -ForegroundColor Green
+        break
+    }
+
+    # Validar que es número y esté en rango
+    if ($choice -match '^\d+$') {
+        $idx = [int]$choice - 1
+        if ($idx -ge 0 -and $idx -lt $logNames.Count) {
+            $selectedLog = $logNames[$idx]
+            Write-Host "`n--- Mostrando los 12 últimos registros de: $selectedLog ---`n" -ForegroundColor Cyan
+
+            try {
+                Get-WinEvent -LogName $selectedLog -MaxEvents 12 -ErrorAction Stop |
+                    Select-Object TimeCreated, LevelDisplayName, Id, ProviderName,
+                        @{Name='Mensaje';Expression={ ($_.Message -split "`r?`n")[0] }} |
+                    Format-Table -AutoSize
+            } catch {
+                Write-Host "No se pudieron recuperar eventos del registro $selectedLog. Puede que requiera permisos o que el registro no soporte Get-WinEvent." -ForegroundColor Red
+            }
+
+            Write-Host ""
+            Read-Host "Pulsa ENTER para volver al menú"
+        } else {
+            Write-Host "Número fuera de rango. Intenta otra vez." -ForegroundColor Yellow
+            Start-Sleep -Seconds 1
+        }
+    } else {
+        Write-Host "Entrada no válida. Debes introducir un número." -ForegroundColor Yellow
+        Start-Sleep -Seconds 1
+    }
+
+} until ($choice -eq '0')
