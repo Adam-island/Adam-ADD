@@ -1,0 +1,58 @@
+param(
+    [Parameter(Mandatory=$true)]
+    [string]$FechaInicio,
+    
+    [Parameter(Mandatory=$true)]
+    [string]$FechaFin
+)
+
+# Convertir las fechas de string a DateTime
+try {
+    $inicio = [DateTime]::ParseExact($FechaInicio, "dd/MM/yyyy", $null)
+    $fin = [DateTime]::ParseExact($FechaFin, "dd/MM/yyyy", $null).AddDays(1).AddSeconds(-1)
+} catch {
+    Write-Host "Error: Formato de fecha incorrecto. Use dd/MM/yyyy (ejemplo: 23/10/2024)" -ForegroundColor Red
+    exit
+}
+
+Write-Host "`nEventos de Inicio de Sesión:" -ForegroundColor Cyan
+Write-Host "Desde: $FechaInicio hasta: $FechaFin" -ForegroundColor Yellow
+Write-Host ("-" * 80) -ForegroundColor Gray
+
+# Obtener eventos de inicio de sesión (Event ID 4624 - Logon successful)
+$eventos = Get-WinEvent -FilterHashtable @{
+    LogName = 'Security'
+    ID = 4624
+    StartTime = $inicio
+    EndTime = $fin
+} -ErrorAction SilentlyContinue
+
+if ($eventos) {
+    $registros = @()
+    
+    foreach ($evento in $eventos) {
+        # Extraer el nombre de usuario del evento
+        $xml = [xml]$evento.ToXml()
+        $usuario = ($xml.Event.EventData.Data | Where-Object {$_.Name -eq 'TargetUserName'}).'#text'
+        
+        # Excluir usuario SYSTEM
+        if ($usuario -ne "SYSTEM") {
+            $registros += [PSCustomObject]@{
+                Fecha = $evento.TimeCreated.ToString("dd/MM/yyyy HH:mm:ss")
+                Usuario = $usuario
+            }
+        }
+    }
+    
+    # Mostrar resultados
+    if ($registros.Count -gt 0) {
+        foreach ($reg in $registros) {
+            Write-Host "Fecha: $($reg.Fecha) - Usuario: $($reg.Usuario)"
+        }
+        Write-Host "`nTotal de registros: $($registros.Count)" -ForegroundColor Green
+    } else {
+        Write-Host "No se encontraron inicios de sesión (excluyendo SYSTEM) en el rango especificado." -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "No se encontraron eventos en el rango de fechas especificado." -ForegroundColor Yellow
+}
