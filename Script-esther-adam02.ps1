@@ -160,7 +160,7 @@ if ($Accion -eq "-G") {
                            -Path $pathGrupo
                 
                 Write-Host ""
-                Write-Host "✓ ÉXITO: Grupo '$NombreGrupo' creado correctamente." -ForegroundColor Green
+                Write-Host "ÉXITO: Grupo '$NombreGrupo' creado correctamente." -ForegroundColor Green
                 Write-Host "  Ubicación: $pathGrupo" -ForegroundColor Cyan
                 Write-Host ""
                 
@@ -242,7 +242,7 @@ elseif ($Accion -eq "-U") {
                           -Path $UO
                 
                 Write-Host ""
-                Write-Host "✓ ÉXITO: Usuario '$NombreUsuario' creado." -ForegroundColor Green
+                Write-Host " ÉXITO: Usuario '$NombreUsuario' creado." -ForegroundColor Green
                 Write-Host "  Contraseña asignada: $contrasenaTemporal" -ForegroundColor Cyan
                 Write-Host "  Ubicación: $UO" -ForegroundColor Cyan
                 Write-Host "  (El usuario deberá cambiarla en el primer inicio de sesión)" -ForegroundColor Yellow
@@ -330,7 +330,7 @@ elseif ($Accion -eq "-M") {
         }
         
         # La contraseña es válida, continuamos
-        Write-Host "✓ Contraseña válida (cumple requisitos de complejidad)." -ForegroundColor Green
+        Write-Host " Contraseña válida (cumple requisitos de complejidad)." -ForegroundColor Green
         
         # Convertir a SecureString
         $contrasenaSegura = ConvertTo-SecureString $nuevaContrasena -AsPlainText -Force
@@ -351,16 +351,16 @@ elseif ($Accion -eq "-M") {
             # Modo real: cambiar la contraseña
             try {
                 Set-ADAccountPassword -Identity $usuario -NewPassword $contrasenaSegura -Reset
-                Write-Host "✓ Contraseña cambiada correctamente." -ForegroundColor Green
+                Write-Host " Contraseña cambiada correctamente." -ForegroundColor Green
                 
                 # Habilitar o deshabilitar la cuenta según Param3
                 if ($Param3 -eq "Enable") {
                     Enable-ADAccount -Identity $usuario
-                    Write-Host "✓ Cuenta HABILITADA." -ForegroundColor Green
+                    Write-Host " Cuenta HABILITADA." -ForegroundColor Green
                     
                 } elseif ($Param3 -eq "Disable") {
                     Disable-ADAccount -Identity $usuario
-                    Write-Host "✓ Cuenta DESHABILITADA." -ForegroundColor Green
+                    Write-Host " Cuenta DESHABILITADA." -ForegroundColor Green
                     
                 } else {
                     Write-Host "Advertencia: Param3 debe ser 'Enable' o 'Disable'." -ForegroundColor Yellow
@@ -407,9 +407,9 @@ elseif ($Accion -eq "-AG") {
     try {
         Get-ADUser -Identity $NombreUsuario -ErrorAction Stop | Out-Null
         $usuarioExiste = $true
-        Write-Host "✓ Usuario '$NombreUsuario' encontrado." -ForegroundColor Green
+        Write-Host " Usuario '$NombreUsuario' encontrado." -ForegroundColor Green
     } catch {
-        Write-Host "✗ ERROR: El usuario '$NombreUsuario' NO EXISTE." -ForegroundColor Red
+        Write-Host " ERROR: El usuario '$NombreUsuario' NO EXISTE." -ForegroundColor Red
     }
     
     # Paso 3: Verificar que el GRUPO existe
@@ -417,9 +417,9 @@ elseif ($Accion -eq "-AG") {
     try {
         Get-ADGroup -Identity $NombreGrupo -ErrorAction Stop | Out-Null
         $grupoExiste = $true
-        Write-Host "✓ Grupo '$NombreGrupo' encontrado." -ForegroundColor Green
+        Write-Host " Grupo '$NombreGrupo' encontrado." -ForegroundColor Green
     } catch {
-        Write-Host "✗ ERROR: El grupo '$NombreGrupo' NO EXISTE." -ForegroundColor Red
+        Write-Host " ERROR: El grupo '$NombreGrupo' NO EXISTE." -ForegroundColor Red
     }
     
     Write-Host ""
@@ -437,7 +437,7 @@ elseif ($Accion -eq "-AG") {
             try {
                 Add-ADGroupMember -Identity $NombreGrupo -Members $NombreUsuario
                 
-                Write-Host "✓ ÉXITO: Usuario '$NombreUsuario' añadido al grupo '$NombreGrupo'." -ForegroundColor Green
+                Write-Host " ÉXITO: Usuario '$NombreUsuario' añadido al grupo '$NombreGrupo'." -ForegroundColor Green
                 Write-Host ""
                 
             } catch {
